@@ -1,0 +1,18 @@
+﻿<Properties StartupConfiguration="{ABBD2040-FE9C-90D8-2D69-F426F152C59A}|">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/InitializeAvatarScript.cs">
+    <Files>
+      <File FileName="Assets/Scripts/ClientNetworkScript.cs" Line="250" Column="38" />
+      <File FileName="Assets/Scripts/LocalAvatarScript.cs" Line="1" Column="1" />
+      <File FileName="Assets/Scripts/InitializeAvatarScript.cs" Line="20" Column="25" />
+      <File FileName="Assets/Scripts/RemoteAvatarScript.cs" Line="108" Column="89" />
+      <File FileName="Assets/Scripts/ServerNetworkScript.cs" Line="346" Column="32" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="ef92dec2-ce00-4ce1-8fc5-287dc8a95a32" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>
