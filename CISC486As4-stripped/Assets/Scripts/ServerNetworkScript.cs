@@ -162,7 +162,7 @@ class Messages{
 		byte [] r_bytes = BitConverter.GetBytes(int_r);
 		m[7] = r_bytes[0];
 		m[8] = r_bytes[1];
-	
+
 		Debug.Assert(GetMessageType(m) == setAvatarPositionRotation);
 
 		return m;
@@ -278,7 +278,7 @@ class Messages{
 		z = (float) z_val / 100f;
 
 		// R position
-		byte [] r_bytes = new byte[] {message[5], message[6]};
+		byte [] r_bytes = new byte[] {message[7], message[8]};
 		short r_val = BitConverter.ToInt16(r_bytes, 0);
 		r = (float) r_val / 100f;
 	}
@@ -324,13 +324,18 @@ public class ServerNetworkScript : MonoBehaviour {
 	Dictionary<int,byte> connections = new Dictionary<int,byte>();
 
 	/// <summary>
+	/// Stores next playerID value
+	/// </summary>
+	int nextPlayerID = 0;
+
+	/// <summary>
 	/// When a client indicates that it would like to connect, we log the client in our connections
 	/// list. To initialize the client, we send the client its player id (setPlayerId message),
 	/// and we tell the client which avatar to use (setAvatar message). Avatars are assigned
 	/// to clients based on the order in which they connect - the first client is assigned the Flora
 	/// avatar; the second is assigned the Tommy avatar.
 	/// </summary>
-	/// <param name="recHostId">Rec host identifier.</param>
+	/// <param name="recHostId">Rec host identifier.</paradm>
 	/// <param name="connectionId">Connection identifier.</param>
 	/// <param name="channelId">Channel identifier.</param>
 	void AddNewClient(int recHostId, int connectionId, int channelId) {
@@ -344,6 +349,23 @@ public class ServerNetworkScript : MonoBehaviour {
 		Debug.LogFormat("Setting avatar for player {0} to {1}", connectionId, avatarForThisConnection);
 
 		// ...
+		byte error;
+		// Add client to connections map
+		connections.Add(connectionId, avatarForThisConnection);
+		// Send client its player ID
+		nextPlayerID += 1;
+		byte [] setPlayerIdMessage = Messages.CreateSetPlayerIdMessage(nextPlayerID);
+		SendMessageToClient(setPlayerIdMessage, 2, recHostId, connectionId, channelId);
+
+		// Tell client which avatar to use
+		byte [] setAvatarMessage = Messages.CreateUseAvatarMessage(avatarForThisConnection);
+		SendMessageToClient(setAvatarMessage,2 , recHostId, connectionId, channelId);
+	}
+
+	void SendMessageToClient(byte[] message, int messageLength, int recHostId, int connectionId, int channelId) {
+		byte error;
+		NetworkTransport.Send(recHostId, connectionId, channelId, message, messageLength, out error);
+		Messages.LogNetworkError(error);
 	}
 
 	/// <summary>
@@ -356,7 +378,13 @@ public class ServerNetworkScript : MonoBehaviour {
 	void ForwardMovementMessage(int senderConnectionId, byte[] message, int messageLength) {
 		// send to all clients other than originator
 		
-		// ...
+		// ... Attempt
+		foreach(KeyValuePair<int, byte> conn in connections)
+		{
+			if(conn.Key != senderConnectionId){
+				SendMessageToClient(message,messageLength, hostId, conn.Key, dataChannelId);
+			}
+		}
 	}
 
 	/// <summary>

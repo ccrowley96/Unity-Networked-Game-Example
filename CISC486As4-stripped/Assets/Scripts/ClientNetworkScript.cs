@@ -106,16 +106,18 @@ public class ClientNetworkScript : MonoBehaviour {
 	/// </summary>
 	/// <param name="message">Message.</param>
 	void UpdateRemoteAvatar(byte[] message) {
+		Debug.Log("Length of remote avatar marshalled message: " + message.Length);
 		byte avatarId;
 		float x, z, r;
 		byte m;
 
 		// ... Attempt
 		Messages.UnmarshallPositionRotationMessage(message, out avatarId, out x, out z, out r, out m);
+		Debug.Log("Umarshalled data: " + avatarId + ", x: " + x + ", z: " + z + ", r: " + r + ", m: " + m);
 
 		RemoteAvatarScript ras = _remoteAvatar.GetComponent<RemoteAvatarScript>();
 
-		ras.targetPosition = new Vector3(x,_remoteAvatar.transform.position.y,z);
+		ras.targetPosition = new Vector3(x,2.25f,z);
 		ras.targetRotation = Quaternion.Euler(0f,r,0f);
 		ras.targetMovementState = m;
 	}
@@ -139,7 +141,9 @@ public class ClientNetworkScript : MonoBehaviour {
 			InitializeAvatars(avatarId);
 		} else if (messageType == Messages.setAvatarPositionRotation) {
 			// Attempt
+			Debug.Log("Right before update remote avatar");
 			UpdateRemoteAvatar(message);
+			Debug.Log("Right after update remote avatar");
 		} else {
 			Debug.AssertFormat(false, "Unknown message type {0}", messageType);
 		}
@@ -224,7 +228,7 @@ public class ClientNetworkScript : MonoBehaviour {
 		while(true) {
 			if(_isConnected && _localAvatar != null) {
 				// ... Attempt
-				byte[] message = Messages.CreateSetAvatarPositionRotationMessage(_localAvatarId, transform.position.x, transform.position.z, transform.rotation.y, _localAvatar.GetComponent<LocalAvatarScript>().movementState);
+				byte[] message = Messages.CreateSetAvatarPositionRotationMessage(_localAvatarId, _localAvatar.transform.position.x, _localAvatar.transform.position.z, _localAvatar.transform.rotation.eulerAngles.y, _localAvatar.GetComponent<LocalAvatarScript>().movementState);
 				SendMessageToServer(message, _dataChannelId);
 			}
 			yield return new WaitForSeconds(messageSendFrequency);

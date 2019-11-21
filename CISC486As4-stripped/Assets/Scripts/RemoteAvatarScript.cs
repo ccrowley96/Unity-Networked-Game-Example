@@ -90,16 +90,27 @@ public class RemoteAvatarScript : MonoBehaviour {
 	/// </summary>
 	void UpdateAvatarPosition() {
 		if(UpdateAlgorithm == Algorithm.None) {
-			Debug.Log("Updating avatar position with algorithm 'none'");
-			// UpdateAvatarPositionImmediately();
+			//Debug.Log("Updating avatar position with algorithm 'none'");
+			UpdateAvatarPositionImmediately();
 		} else if(UpdateAlgorithm == Algorithm.DeadReckoning) {
-			Debug.Log("Updating avatar position with algorithm 'dead reckoning'");
-			// MoveAvatarWithDeadReckoning();
+			//Debug.Log("Updating avatar position with algorithm 'dead reckoning'");
+			// MoveAvatarWithDeadReckoning(); 
 		} else {
 			Debug.Assert(UpdateAlgorithm == Algorithm.SmoothCorrections);
-			Debug.Log("Updating avatar position with algorithm 'smooth corrections'");
+			//Debug.Log("Updating avatar position with algorithm 'smooth corrections'");
 			// SmoothlyCorrectAvatarPosition();
 		}
+	}
+
+
+	/// <summary>
+	/// Update the avatar's position taking into account the target position and rotation,
+	/// </summary>
+	void UpdateAvatarPositionImmediately(){
+		if(_hasTargetPosition)
+		transform.position = targetPosition;
+		if(_hasTargetRotation)
+		transform.rotation = targetRotation;
 	}
 
 	/// <summary>
