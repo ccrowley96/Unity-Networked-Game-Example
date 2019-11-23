@@ -12,6 +12,8 @@ public class RemoteAvatarScript : MonoBehaviour {
 	const float _positionUpdateThreshold = 0.1f;
 	const float _rotationUpdateThreshold = 1;
 
+	const float correctionThreshold = 1f;
+
 	// Where the avatar should be
 	Vector3 _targetPosition;
 	bool _hasTargetPosition = false;
@@ -90,15 +92,15 @@ public class RemoteAvatarScript : MonoBehaviour {
 	/// </summary>
 	void UpdateAvatarPosition() {
 		if(UpdateAlgorithm == Algorithm.None) {
-			//Debug.Log("Updating avatar position with algorithm 'none'");
+			Debug.Log("Updating avatar position with algorithm 'none'");
 			UpdateAvatarPositionImmediately();
 		} else if(UpdateAlgorithm == Algorithm.DeadReckoning) {
-			//Debug.Log("Updating avatar position with algorithm 'dead reckoning'");
-			// MoveAvatarWithDeadReckoning(); 
+			Debug.Log("Updating avatar position with algorithm 'dead reckoning'");
+			MoveAvatarWithDeadReckoning(); 
 		} else {
 			Debug.Assert(UpdateAlgorithm == Algorithm.SmoothCorrections);
-			//Debug.Log("Updating avatar position with algorithm 'smooth corrections'");
-			// SmoothlyCorrectAvatarPosition();
+			Debug.Log("Updating avatar position with algorithm 'smooth corrections'");
+			SmoothlyCorrectAvatarPosition();
 		}
 	}
 
@@ -111,6 +113,66 @@ public class RemoteAvatarScript : MonoBehaviour {
 		transform.position = targetPosition;
 		if(_hasTargetRotation)
 		transform.rotation = targetRotation;
+	}
+
+	/// <summary>
+	/// Update the avatar's position using the dead reckoning algorithm
+	/// </summary>
+	void MoveAvatarWithDeadReckoning(){
+
+		// Find current velocity
+		Vector3 velocity = transform.forward * AnimationInfo.walkSpeed;
+
+		// If in moving state, use dead reckoning
+		if(targetMovementState == AnimationInfo.walking || 
+			targetMovementState == AnimationInfo.walkingTurningLeft ||
+			targetMovementState == AnimationInfo.walkingTurningLeft){
+				transform.position = transform.position + velocity * Time.deltaTime;
+		}
+		// else, snap to correct position
+		else{
+			transform.position = targetPosition;
+		}
+
+		// smoothly update rotation
+		transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, AnimationInfo.turnSpeed * Time.deltaTime);
+	}
+
+	/// <summary>
+	/// When positional updates for the remote avatar arrive, 
+	/// if the correction is large, use smooth corrections to fix it. 
+	/// The correction is considered large if the difference in position 
+	/// between the new position and the currently saved position is above some threshold. 
+	/// When correcting, the remote avatar should be set to move at double its usual speed.
+	/// </summary>
+	void SmoothlyCorrectAvatarPosition(){
+
+		// If in moving state, use dead reckoning
+		if(targetMovementState == AnimationInfo.walking || 
+			targetMovementState == AnimationInfo.walkingTurningLeft ||
+			targetMovementState == AnimationInfo.walkingTurningLeft){
+
+			// Apply dead reckoning
+			Vector3 velocity = transform.forward * AnimationInfo.walkSpeed;
+			transform.position = transform.position + velocity * Time.deltaTime;
+		} else{
+			if((targetPosition - transform.position).magnitude > correctionThreshold){
+				applySmoothing();
+			} else{
+				transform.position = targetPosition;
+			}
+		}
+
+		void applySmoothing(){
+			// rotate towards target
+			transform.LookAt(targetPosition);
+			// Move to target @ 2x speed
+			Vector3 velocity = (targetPosition - transform.position).normalized * AnimationInfo.fastWalkSpeed;
+			transform.position = transform.position + velocity * Time.deltaTime;
+		}
+		
+		// smoothly update rotation
+		transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, AnimationInfo.turnSpeed * Time.deltaTime);
 	}
 
 	/// <summary>
